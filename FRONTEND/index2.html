@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KTUCore | Student Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css">
+    <link rel="stylesheet" href="style2.css">
+</head>
+<body>
+    <div class="cursor-dot"></div>
+    <div class="cursor-outline"></div>
+
+    <nav class="glass-nav">
+        <div class="logo" onclick="app.goHome()">KTU<span class="highlight">Core</span></div>
+        <form action="" method="post" class="search-form">
+        <input type="text" name="search_box" placeholder="What do you want to search?" required maxlength="100">
+        <button type="submit" class="fas fa-search" name="search_box"></button>
+    </form>
+        <div class="nav-links">
+            <a href="#" class="nav-item active" data-target="home">HOME</a>
+            <a href="#" class="nav-item" data-target="notes">NOTES</a>
+            <a href="#" class="nav-item" data-target="attendance">ATTENDANCE</a>
+            <a href="#" class="nav-item" data-target="sgpa">SGPA/CGPA</a>
+            <a href="#" class="nav-item logout-btn">LOGOUT</a>
+        </div>
+    </nav>
+
+    
+
+    <main id="main-content">
+        <section id="landing-section" class="active-section">
+            <div class="hero">
+                <h1 class="hero-title">Master Your <span class="text-gradient">Academics</span></h1>
+                <p class="hero-subtitle">The ultimate toolkit for KTU students.</p>
+            </div>
+            <div class="card-grid">
+                <div class="card" onclick="app.handleCardClick('notes')">
+                    <div class="card-icon">📚</div>
+                    <h3>NOTES</h3>
+                    <p>Scheme-wise notes.</p>
+                </div>
+                <div class="card" onclick="app.handleCardClick('attendance')">
+                    <div class="card-icon">📊</div>
+                    <h3>ATTENDANCE</h3>
+                    <p>Bunk or attend? Find out.</p>
+                </div>
+                <div class="card" onclick="app.handleCardClick('sgpa')">
+                    <div class="card-icon">🎓</div>
+                    <h3>GPA Tracker</h3>
+                    <p>Calculate SGPA & CGPA.</p>
+                </div>
+                <div class="card" onclick="app.handleCardClick('pyq')">
+                    <div class="card-icon">📝</div>
+                    <h3>PYQ</h3>
+                    <p>Previous Year Questions</p>
+                </div>
+                <div class="card" onclick="app.handleCardClick('cert')">
+                    <div class="card-icon">🏆</div>
+                    <h3>CERT UPLOADER</h3>
+                    <p>Manage achievements</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="notes-section" class="hidden-section">
+            <button class="back-btn" onclick="app.goBack()">← Back</button>
+            <div id="step-scheme" class="flow-step">
+                <h2>Select Scheme</h2>
+                <div class="option-grid">
+                    <button class="option-btn" onclick="app.selectScheme('2019')">2019 Scheme</button>
+                    <button class="option-btn" onclick="app.selectScheme('2024')">2024 Scheme</button>
+                </div>
+            </div>
+            <div id="step-semester" class="flow-step hidden-step">
+                <h2>Select Semester</h2>
+                <div id="semester-options" class="option-grid"></div>
+            </div>
+            <div id="step-subject" class="flow-step hidden-step">
+                <h2>Subjects for <span id="selected-sem-display"></span></h2>
+                <div id="subject-options" class="option-grid"></div>
+            </div>
+            <div id="step-materials" class="flow-step hidden-step">
+                <h2>Resources: <span id="selected-sub-display"></span></h2>
+                <ul id="resource-list" class="resource-container"></ul>
+            </div>
+        </section>
+
+        <section id="attendance-section" class="hidden-section">
+            <button class="back-btn" onclick="app.goBack()">← Back</button>
+            <div class="calc-card">
+                <h2>Attendance Predictor</h2>
+                <input type="number" id="att-total" placeholder="Total Classes (e.g. 50)">
+                <input type="number" id="att-attended" placeholder="Classes Attended (e.g. 40)">
+                <input type="number" id="att-required" placeholder="Required % (e.g. 75)">
+                <button class="primary-btn" onclick="app.calculateAttendance()">Predict</button>
+                <div id="att-result" class="result-box hidden"></div>
+            </div>
+        </section>
+
+        <section id="sgpa-section" class="hidden-section">
+            <button class="back-btn" onclick="app.goBack()">← Back</button>
+            <div id="sgpa-setup" class="calc-card">
+                <h2>GPA Calculator</h2>
+                <select id="sgpa-scheme" class="styled-select">
+                    <option value="2019">2019 Scheme</option>
+                    <option value="2024">2024 Scheme</option>
+                </select>
+                <select id="sgpa-dept" class="styled-select">
+                    <option value="CS">Computer Science</option>
+                    <option value="EC">Electronics</option>
+                </select>
+                <button class="primary-btn" onclick="app.initSGPADashboard()">Start Calculating</button>
+            </div>
+
+            <div id="sgpa-dashboard" class="hidden-step">
+                <div id="cgpa-summary-card" class="summary-card"></div>
+                <div id="semester-list" class="accordion-container"></div>
+            </div>
+        </section>
+    </main>
+
+    <script src="script2.js"></script>
+</body>
+</html>
