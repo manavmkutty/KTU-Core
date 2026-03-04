@@ -1,6 +1,6 @@
 /* Data Module: KTU Curriculum */
 const ktuData = {
-    schemes: ['2019', '2024'],
+    schemes: [],
     departments: [
         { id: 'CS', name: 'Computer Science & Engineering' },
         { id: 'EC', name: 'Electronics & Communication' },
@@ -13,42 +13,48 @@ const ktuData = {
         'B': 7.5, 'C+': 7.0, 'C': 6.5, 'D': 6.0,
         'P': 5.5, 'F': 0
     },
-    curriculum: {
-        '2019': {
-            'CS': {
-                'S1': [
-                    { name: "LINEAR ALGEBRA AND CALCULUS", credit: 4 },
-                    { name: "ENGINEERING PHYSICS A", credit: 4 },
-                    { name: "ENGINEERING GRAPHICS", credit: 3 },
-                    { name: "BASICS OF CIVIL & MECH", credit: 4 },
-                    { name: "PHYSICS LAB", credit: 1 },
-                    { name: "CIVIL & MECH WORKSHOP", credit: 1 }
-                ],
-                'S2': [{ name: "Vector Calculus", credit: 4 }, { name: "Chemistry", credit: 4 }, { name: "C Programming", credit: 3 }]
-            }
-        }
-    },
-    // Mock materials for the notes section
-    materials: [
-        { title: "Module 1 Handwritten Notes", size: "2.4 MB" },
-        { title: "Previous Year Question Paper", size: "1.1 MB" },
-        { title: "Textbook PDF (Reference)", size: "15 MB" }
-    ]
+    curriculum: {}, // Will be populated from API
+    materials: []    // Will be populated from API
 };
+
+const API_BASE_URL = 'http://localhost:8000/api'; // Django default port is 8000
 
 const app = {
     user: {
         scheme: null,
         dept: null,
-        sgpa: {} 
+        sgpa: {}
     },
-    state: { scheme: null, semester: null, subject: null },
+    state: { scheme: null, dept: null, semester: null, subject: null },
 
-    init() {
+    async init() {
         this.addCustomCursor();
         this.initSparkles();
         this.setupNavigation();
-        console.log("KTUCore initialized.");
+        await this.loadInitialData();
+        console.log("KTUCore initialized with Django backend.");
+    },
+
+    async loadInitialData() {
+        try {
+            const res = await fetch(`${API_BASE_URL}/curriculum/schemes/`);
+            ktuData.schemes = await res.json();
+            if (ktuData.schemes.length === 0) {
+                ktuData.schemes = ['2019', '2024'];
+            }
+        } catch (err) {
+            console.error("Failed to load schemes:", err);
+            ktuData.schemes = ['2019', '2024'];
+        }
+        this.renderSchemeOptions();
+    },
+
+    renderSchemeOptions() {
+        const container = document.getElementById('scheme-options');
+        if (!container) return;
+        container.innerHTML = ktuData.schemes.map(s =>
+            `<button class="option-btn" onclick="app.selectScheme('${s}')">${s} Scheme</button>`
+        ).join('');
     },
 
     /* Navigation & Routing */
@@ -77,9 +83,7 @@ const app = {
         }
     },
 
-    goHome() {
-        this.showSection('landing-section');
-    },
+    goHome() { this.showSection('landing-section'); },
 
     goBack() {
         const notesSection = document.getElementById('notes-section');
@@ -87,8 +91,10 @@ const app = {
             const current = document.querySelector('.flow-step.active-step');
             if (!current || current.id === 'step-scheme') {
                 this.goHome();
-            } else if (current.id === 'step-semester') {
+            } else if (current.id === 'step-dept') {
                 this.setFlowStep('step-scheme');
+            } else if (current.id === 'step-semester') {
+                this.setFlowStep('step-dept');
             } else if (current.id === 'step-subject') {
                 this.setFlowStep('step-semester');
             } else if (current.id === 'step-materials') {
@@ -111,7 +117,7 @@ const app = {
 
         this.user.scheme = scheme;
         this.user.dept = dept;
-        this.user.sgpa = {}; 
+        this.user.sgpa = {};
 
         this.renderSemesterList();
         this.updateCGPASummary();
@@ -140,38 +146,45 @@ const app = {
         });
     },
 
-    toggleSemBody(sem) {
+    async toggleSemBody(sem) {
         const body = document.getElementById(`sem-body-${sem}`);
         if (body.innerHTML.trim() === '') {
-            this.renderSemCalculator(sem, body);
+            await this.renderSemCalculator(sem, body);
         }
         body.classList.toggle('hidden');
     },
 
-    renderSemCalculator(sem, container) {
-        const subjects = (ktuData.curriculum[this.user.scheme] && 
-                          ktuData.curriculum[this.user.scheme][this.user.dept] && 
-                          ktuData.curriculum[this.user.scheme][this.user.dept][sem]) 
-                          || ktuData.curriculum['2019']['CS']['S1'];
+    async renderSemCalculator(sem, container) {
+        container.innerHTML = '<div class="loader">Loading subjects...</div>';
 
-        let html = `<table class="sgpa-table"><thead><tr><th>Subject</th><th>Credit</th><th>Grade</th></tr></thead><tbody>`;
+        try {
+            // Using the verified shorter path: /api/curriculum/scheme/dept/semester/
+            const res = await fetch(`${API_BASE_URL}/curriculum/${this.user.scheme}/${this.user.dept}/${sem}/`);
+            const subjects = await res.json();
 
-        subjects.forEach((sub) => {
-            html += `
-                <tr>
-                    <td>${sub.name}</td>
-                    <td>${sub.credit}</td>
-                    <td>
-                        <select class="grade-select styled-select" data-credit="${sub.credit}">
-                            <option value="">Select</option>
-                            ${Object.keys(ktuData.grades).map(g => `<option value="${ktuData.grades[g]}">${g}</option>`).join('')}
-                        </select>
-                    </td>
-                </tr>`;
-        });
+            if (subjects.error) throw new Error(subjects.error);
 
-        html += `</tbody></table><button class="primary-btn" onclick="app.calculateSemesterSGPA('${sem}')">Calculate ${sem} SGPA</button>`;
-        container.innerHTML = html;
+            let html = `<table class="sgpa-table"><thead><tr><th>Subject</th><th>Credit</th><th>Grade</th></tr></thead><tbody>`;
+
+            subjects.forEach((sub) => {
+                html += `
+                    <tr>
+                        <td>${sub.name}</td>
+                        <td>${sub.credit}</td>
+                        <td>
+                            <select class="grade-select styled-select" data-credit="${sub.credit}">
+                                <option value="">Select</option>
+                                ${Object.keys(ktuData.grades).map(g => `<option value="${ktuData.grades[g]}">${g}</option>`).join('')}
+                            </select>
+                        </td>
+                    </tr>`;
+            });
+
+            html += `</tbody></table><button class="primary-btn" onclick="app.calculateSemesterSGPA('${sem}')">Calculate ${sem} SGPA</button>`;
+            container.innerHTML = html;
+        } catch (err) {
+            container.innerHTML = `<div class="error">Failed to load subjects: ${err.message}</div>`;
+        }
     },
 
     calculateSemesterSGPA(sem) {
@@ -200,7 +213,7 @@ const app = {
     updateCGPASummary() {
         const container = document.getElementById('cgpa-summary-card');
         if (!container) return;
-        
+
         let totalCredits = 0, totalPoints = 0;
         Object.values(this.user.sgpa).forEach(s => {
             totalCredits += s.credits;
@@ -245,15 +258,15 @@ const app = {
     },
 
     /* --- Notes Flow --- */
-    resetNotesFlow() { 
-        this.state = { scheme: null, semester: null, subject: null }; 
-        this.setFlowStep('step-scheme'); 
+    resetNotesFlow() {
+        this.state = { scheme: null, dept: null, semester: null, subject: null };
+        this.setFlowStep('step-scheme');
     },
 
     setFlowStep(id) {
-        document.querySelectorAll('.flow-step').forEach(e => { 
-            e.classList.add('hidden-step'); 
-            e.classList.remove('active-step'); 
+        document.querySelectorAll('.flow-step').forEach(e => {
+            e.classList.add('hidden-step');
+            e.classList.remove('active-step');
         });
         const target = document.getElementById(id);
         if (target) {
@@ -264,34 +277,67 @@ const app = {
 
     selectScheme(s) {
         this.state.scheme = s;
-        document.getElementById('semester-options').innerHTML = ktuData.semesters.map(sem => 
+        document.getElementById('dept-options').innerHTML = ktuData.departments.map(d =>
+            `<button class="option-btn" onclick="app.selectDept('${d.id}')">${d.name}</button>`
+        ).join('');
+        this.setFlowStep('step-dept');
+    },
+
+    selectDept(d) {
+        this.state.dept = d;
+        document.getElementById('semester-options').innerHTML = ktuData.semesters.map(sem =>
             `<button class="option-btn" onclick="app.selectSemester('${sem}')">${sem}</button>`
         ).join('');
         this.setFlowStep('step-semester');
     },
 
-    selectSemester(s) {
+    async selectSemester(s) {
         this.state.semester = s;
         document.getElementById('selected-sem-display').innerText = s;
-        const subjects = (ktuData.curriculum['2019'] && ktuData.curriculum['2019']['CS'][s]) || ktuData.curriculum['2019']['CS']['S1'];
-        document.getElementById('subject-options').innerHTML = subjects.map(sub => 
-            `<button class="option-btn" onclick="app.selectSubject('${sub.name}')">${sub.name}</button>`
-        ).join('');
+
+        try {
+            // Using the verified shorter path: /api/curriculum/scheme/dept/semester/
+            const res = await fetch(`${API_BASE_URL}/curriculum/${this.state.scheme}/${this.state.dept}/${s}/`);
+            const subjects = await res.json();
+
+            if (subjects.error) throw new Error(subjects.error);
+
+            document.getElementById('subject-options').innerHTML = subjects.map(sub =>
+                `<button class="option-btn" onclick="app.selectSubject('${sub.name}')">${sub.name}</button>`
+            ).join('');
+        } catch (err) {
+            document.getElementById('subject-options').innerHTML = `<div class="error">Failed to load subjects: ${err.message}</div>`;
+        }
+
         this.setFlowStep('step-subject');
     },
 
-    selectSubject(s) {
+    async selectSubject(s) {
         this.state.subject = s;
         document.getElementById('selected-sub-display').innerText = s;
-        document.getElementById('resource-list').innerHTML = ktuData.materials.map(mat => `
-            <li class="resource-item">
-                <div class="resource-info">
-                    <h4>${s} - ${mat.title}</h4>
-                    <small>${mat.size}</small>
-                </div>
-                <a href="#" class="download-btn">Download</a>
-            </li>
-        `).join('');
+
+        try {
+            // Using a simple query for resources
+            const res = await fetch(`${API_BASE_URL}/resources/?scheme=${this.state.scheme}&dept=${this.state.dept}&semester=${this.state.semester}&subject_name=${encodeURIComponent(s)}`);
+            const materials = await res.json();
+
+            if (!Array.isArray(materials) || materials.length === 0) {
+                document.getElementById('resource-list').innerHTML = '<p>No resources found for this subject.</p>';
+            } else {
+                document.getElementById('resource-list').innerHTML = materials.map(mat => `
+                    <li class="resource-item">
+                        <div class="resource-info">
+                            <h4>${mat.title}</h4>
+                            <small>${mat.size || 'Unknown size'}</small>
+                        </div>
+                        <a href="${mat.url}" target="_blank" class="download-btn">View/Download</a>
+                    </li>
+                `).join('');
+            }
+        } catch (err) {
+            document.getElementById('resource-list').innerHTML = '<div class="error">Failed to load resources.</div>';
+        }
+
         this.setFlowStep('step-materials');
     },
 
@@ -321,40 +367,22 @@ const app = {
     },
 
     initSparkles() {
-        const canvas = document.createElement('canvas');
-        canvas.id = 'sparkle-canvas';
+        const canvas = document.createElement('canvas'); canvas.id = 'sparkle-canvas';
         document.body.appendChild(canvas);
         const ctx = canvas.getContext('2d');
-        let width = canvas.width = window.innerWidth;
-        let height = canvas.height = window.innerHeight;
-        let sparkles = [];
+        let width = canvas.width = window.innerWidth, height = canvas.height = window.innerHeight, sparkles = [];
 
         class Sparkle {
             constructor(x, y) {
-                this.x = x; this.y = y;
-                this.size = Math.random() * 2;
-                this.speedX = Math.random() * 2 - 1;
-                this.speedY = Math.random() * 2 - 1;
-                this.life = 1;
+                this.x = x; this.y = y; this.size = Math.random() * 2;
+                this.speedX = Math.random() * 2 - 1; this.speedY = Math.random() * 2 - 1; this.life = 1;
             }
             update() { this.x += this.speedX; this.y += this.speedY; this.life -= 0.02; }
-            draw() {
-                ctx.globalAlpha = this.life;
-                ctx.fillStyle = "#fff";
-                ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); ctx.fill();
-            }
+            draw() { ctx.globalAlpha = this.life; ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); ctx.fill(); }
         }
 
-        window.addEventListener('mousemove', (e) => {
-            for (let i = 0; i < 2; i++) sparkles.push(new Sparkle(e.clientX, e.clientY));
-        });
-
-        const anim = () => {
-            ctx.clearRect(0, 0, width, height);
-            sparkles = sparkles.filter(s => s.life > 0);
-            sparkles.forEach(s => { s.update(); s.draw(); });
-            requestAnimationFrame(anim);
-        };
+        window.addEventListener('mousemove', (e) => { for (let i = 0; i < 2; i++) sparkles.push(new Sparkle(e.clientX, e.clientY)); });
+        const anim = () => { ctx.clearRect(0, 0, width, height); sparkles = sparkles.filter(s => s.life > 0); sparkles.forEach(s => { s.update(); s.draw(); }); requestAnimationFrame(anim); };
         anim();
     }
 };

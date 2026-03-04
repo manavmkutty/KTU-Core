@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,6 +8,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css">
     <link rel="stylesheet" href="style2.css">
 </head>
+
 <body>
     <div class="cursor-dot"></div>
     <div class="cursor-outline"></div>
@@ -14,9 +16,9 @@
     <nav class="glass-nav">
         <div class="logo" onclick="app.goHome()">KTU<span class="highlight">Core</span></div>
         <form action="" method="post" class="search-form">
-        <input type="text" name="search_box" placeholder="What do you want to search?" required maxlength="100">
-        <button type="submit" class="fas fa-search" name="search_box"></button>
-    </form>
+            <input type="text" name="search_box" placeholder="What do you want to search?" required maxlength="100">
+            <button type="submit" class="fas fa-search" name="search_box"></button>
+        </form>
         <div class="nav-links">
             <a href="#" class="nav-item active" data-target="home">HOME</a>
             <a href="#" class="nav-item" data-target="notes">NOTES</a>
@@ -26,7 +28,7 @@
         </div>
     </nav>
 
-    
+
 
     <main id="main-content">
         <section id="landing-section" class="active-section">
@@ -67,10 +69,11 @@
             <button class="back-btn" onclick="app.goBack()">← Back</button>
             <div id="step-scheme" class="flow-step">
                 <h2>Select Scheme</h2>
-                <div class="option-grid">
-                    <button class="option-btn" onclick="app.selectScheme('2019')">2019 Scheme</button>
-                    <button class="option-btn" onclick="app.selectScheme('2024')">2024 Scheme</button>
-                </div>
+                <div id="scheme-options" class="option-grid"></div>
+            </div>
+            <div id="step-dept" class="flow-step hidden-step">
+                <h2>Select Department</h2>
+                <div id="dept-options" class="option-grid"></div>
             </div>
             <div id="step-semester" class="flow-step hidden-step">
                 <h2>Select Semester</h2>
@@ -122,4 +125,5 @@
 
     <script src="script2.js"></script>
 </body>
+
 </html>
