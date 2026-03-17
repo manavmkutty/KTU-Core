@@ -1,7 +1,12 @@
+import requests
 from rest_framework import viewsets, response, status
 from rest_framework.decorators import action
+from rest_framework.views import APIView
+from django.conf import settings
 from .models import Curriculum, Subject, Resource
 from .serializers import CurriculumSerializer, SubjectSerializer, ResourceSerializer
+
+CHATBOT_MICROSERVICE_URL = "http://localhost:8001"
 
 class CurriculumViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Curriculum.objects.all()
@@ -44,3 +49,45 @@ class ResourceViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(subject_name=subject_name)
             
         return queryset
+
+class ChatbotView(APIView):
+    def post(self, request):
+        user_message = request.data.get('user_message')
+        session_id = request.data.get('session_id')
+        
+        if not user_message or not session_id:
+            return response.Response(
+                {'error': 'Both session_id and user_message are required'}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+            
+        try:
+            res = requests.post(f"{CHATBOT_MICROSERVICE_URL}/chat", json={
+                "session_id": session_id,
+                "user_message": user_message
+            })
+            res.raise_for_status()
+            return response.Response(res.json(), status=res.status_code)
+        except requests.exceptions.RequestException as e:
+            return response.Response(
+                {'error': f"Failed to connect to Chatbot microservice: {str(e)}"}, 
+                status=status.HTTP_503_SERVICE_UNAVAILABLE
+            )
+
+class ChatbotClearSessionView(APIView):
+    def delete(self, request, session_id):
+        if not session_id:
+            return response.Response(
+                {'error': 'session_id is required'}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+            
+        try:
+            res = requests.delete(f"{CHATBOT_MICROSERVICE_URL}/chat/session/{session_id}")
+            res.raise_for_status()
+            return response.Response(res.json(), status=res.status_code)
+        except requests.exceptions.RequestException as e:
+            return response.Response(
+                {'error': f"Failed to clear session on Chatbot microservice: {str(e)}"}, 
+                status=status.HTTP_503_SERVICE_UNAVAILABLE
+            )

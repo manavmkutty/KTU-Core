@@ -26,11 +26,13 @@ const app = {
         sgpa: {}
     },
     state: { scheme: null, dept: null, semester: null, subject: null },
+    chatSessionId: null,
 
     async init() {
         this.addCustomCursor();
         this.initSparkles();
         this.setupNavigation();
+        this.initChatSession();
         await this.loadInitialData();
         console.log("KTUCore initialized with Django backend.");
     },
@@ -355,6 +357,71 @@ const app = {
 
     showModal(id) { document.getElementById(id)?.classList.remove('hidden'); },
     closeModal() { document.querySelectorAll('.modal').forEach(m => m.classList.add('hidden')); },
+
+    /* --- Chatbot Functions --- */
+    initChatSession() {
+        let sid = sessionStorage.getItem('ktu_chat_session');
+        if (!sid) {
+            sid = 'sess_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
+            sessionStorage.setItem('ktu_chat_session', sid);
+        }
+        this.chatSessionId = sid;
+
+        window.addEventListener('beforeunload', () => {
+            if (this.chatSessionId) {
+                // Send beacon to clear session on tab close
+                navigator.sendBeacon(`${API_BASE_URL}/chat/clear/${this.chatSessionId}/`);
+            }
+        });
+    },
+
+    toggleChat() {
+        document.getElementById('chatbot-window').classList.toggle('active');
+    },
+
+    async sendChatMessage() {
+        const input = document.getElementById('chat-input');
+        const msg = input.value.trim();
+        if (!msg) return;
+
+        this.appendChatMessage('user', msg);
+        input.value = '';
+
+        const loadingId = 'loading-' + Date.now();
+        this.appendChatMessage('assistant', '...', loadingId);
+
+        try {
+            const res = await fetch(`${API_BASE_URL}/chat/`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    session_id: this.chatSessionId,
+                    user_message: msg
+                })
+            });
+            const data = await res.json();
+            document.getElementById(loadingId).remove();
+            
+            if (data.response) {
+                this.appendChatMessage('assistant', data.response);
+            } else {
+                this.appendChatMessage('assistant', 'Sorry, I encountered an error.');
+            }
+        } catch (err) {
+            document.getElementById(loadingId).remove();
+            this.appendChatMessage('assistant', 'Network error while contacting the assistant.');
+        }
+    },
+
+    appendChatMessage(role, text, id = null) {
+        const container = document.getElementById('chat-messages');
+        const div = document.createElement('div');
+        div.className = `chat-msg ${role}`;
+        if (id) div.id = id;
+        div.innerHTML = text;
+        container.appendChild(div);
+        container.scrollTop = container.scrollHeight;
+    },
 
     addCustomCursor() {
         const d = document.querySelector('.cursor-dot');
