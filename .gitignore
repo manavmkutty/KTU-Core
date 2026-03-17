@@ -1,0 +1,28 @@
+# Python Virtual Environments
+.venv/
+venv/
+env/
+__pycache__/
+*.pyc
+*.pyo
+
+# Environment Variables
+.env
+api.env
+
+# MacOS
+.DS_Store
+
+# IDEs
+.vscode/
+.idea/
+
+# Node
+node_modules/
+
+# Database Files
+*.sqlite3
+db.sqlite3
+
+# ChromaDB Data
+Chatbot/data/chromadb_data/
