@@ -429,7 +429,7 @@ const app = {
         if (!d || !o) return;
         window.addEventListener('mousemove', e => {
             d.style.left = `${e.clientX}px`; d.style.top = `${e.clientY}px`;
-            o.animate({ left: `${e.clientX}px`, top: `${e.clientY}px` }, { duration: 500, fill: "forwards" });
+            o.animate({ left: `${e.clientX}px`, top: `${e.clientY}px` }, { duration: 100, fill: "forwards" });
         });
     },
 
@@ -439,14 +439,7 @@ const app = {
         const ctx = canvas.getContext('2d');
         let width = canvas.width = window.innerWidth, height = canvas.height = window.innerHeight, sparkles = [];
 
-        class Sparkle {
-            constructor(x, y) {
-                this.x = x; this.y = y; this.size = Math.random() * 2;
-                this.speedX = Math.random() * 2 - 1; this.speedY = Math.random() * 2 - 1; this.life = 1;
-            }
-            update() { this.x += this.speedX; this.y += this.speedY; this.life -= 0.02; }
-            draw() { ctx.globalAlpha = this.life; ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); ctx.fill(); }
-        }
+        
 
         window.addEventListener('mousemove', (e) => { for (let i = 0; i < 2; i++) sparkles.push(new Sparkle(e.clientX, e.clientY)); });
         const anim = () => { ctx.clearRect(0, 0, width, height); sparkles = sparkles.filter(s => s.life > 0); sparkles.forEach(s => { s.update(); s.draw(); }); requestAnimationFrame(anim); };
