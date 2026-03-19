@@ -1,28 +1,18 @@
-# Python Virtual Environments
+# Virtual environments
 .venv/
-venv/
-env/
+BACKEND_DJANGO/.venv/
+Chatbot/.venv/
+
+# Pycache
 __pycache__/
-*.pyc
-*.pyo
+*.py[cod]
+*$py.class
 
-# Environment Variables
-.env
-api.env
-
-# MacOS
-.DS_Store
-
-# IDEs
-.vscode/
-.idea/
-
-# Node
-node_modules/
-
-# Database Files
-*.sqlite3
+# Data folders
+data/
+Chatbot/data/
 db.sqlite3
+BACKEND_DJANGO/db.sqlite3
 
-# ChromaDB Data
-Chatbot/data/chromadb_data/
+# Environment files
+*.env

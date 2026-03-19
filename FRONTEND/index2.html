@@ -122,27 +122,32 @@
             </div>
         </section>
 
-        <!-- Chatbot UI -->
-        <div class="chatbot-btn" onclick="app.toggleChat()">
-            <i class="fas fa-comment-dots"></i>
-        </div>
-        <div class="chatbot-window" id="chatbot-window">
-            <div class="chat-header">
-                <span>KTU Assistant</span>
-                <span class="close-chat" onclick="app.toggleChat()">&times;</span>
-            </div>
-            <div class="chat-messages" id="chat-messages">
-                <div class="chat-msg assistant">Hello! I'm your KTU Academic Assistant. How can I help you?</div>
-            </div>
-            <div class="chat-input-area">
-                <input type="text" id="chat-input" placeholder="Type a message..." onkeypress="if(event.key === 'Enter') app.sendChatMessage()">
-                <button class="chat-send-btn" onclick="app.sendChatMessage()">
-                    <i class="fas fa-paper-plane"></i>
-                </button>
-            </div>
-        </div>
+
     </main>
 
+    <!-- Chatbot FAB -->
+    <div id="chatbot-fab" onclick="chatbot.toggle()">
+        <i class="fas fa-robot"></i>
+    </div>
+
+    <!-- Chatbot Window -->
+    <div id="chatbot-window" class="hidden-chatbot">
+        <div class="chatbot-header">
+            <h3>KTU Assistant</h3>
+            <button onclick="chatbot.toggle()" class="close-btn"><i class="fas fa-times"></i></button>
+        </div>
+        <div id="chatbot-messages" class="chatbot-messages">
+            <!-- Messages will appear here -->
+        </div>
+        <div class="chatbot-input">
+            <input type="text" id="chat-input" placeholder="Ask about KTU..." onkeypress="chatbot.handleEnter(event)">
+            <button onclick="chatbot.sendMessage()"><i class="fas fa-paper-plane"></i></button>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/interactjs/dist/interact.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="script2.js"></script>
 </body>
 

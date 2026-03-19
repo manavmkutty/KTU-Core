@@ -1,10 +1,10 @@
 import requests
 from rest_framework import viewsets, response, status
-from rest_framework.decorators import action
-from rest_framework.views import APIView
-from django.conf import settings
+from rest_framework.decorators import action, api_view
 from .models import Curriculum, Subject, Resource
 from .serializers import CurriculumSerializer, SubjectSerializer, ResourceSerializer
+import requests
+import json
 
 CHATBOT_MICROSERVICE_URL = "http://localhost:8001"
 
@@ -50,44 +50,51 @@ class ResourceViewSet(viewsets.ModelViewSet):
             
         return queryset
 
-class ChatbotView(APIView):
-    def post(self, request):
-        user_message = request.data.get('user_message')
-        session_id = request.data.get('session_id')
-        
-        if not user_message or not session_id:
-            return response.Response(
-                {'error': 'Both session_id and user_message are required'}, 
-                status=status.HTTP_400_BAD_REQUEST
-            )
-            
-        try:
-            res = requests.post(f"{CHATBOT_MICROSERVICE_URL}/chat", json={
-                "session_id": session_id,
-                "user_message": user_message
-            })
-            res.raise_for_status()
-            return response.Response(res.json(), status=res.status_code)
-        except requests.exceptions.RequestException as e:
-            return response.Response(
-                {'error': f"Failed to connect to Chatbot microservice: {str(e)}"}, 
-                status=status.HTTP_503_SERVICE_UNAVAILABLE
-            )
+@api_view(['POST'])
+def chat_proxy(request):
+    """
+    Forwards the chat query to the Chatbot microservice running on port 8001.
+    """
+    message = request.data.get('message')
+    if not message:
+        return response.Response({'error': 'Message field is missing.'}, status=status.HTTP_400_BAD_REQUEST)
 
-class ChatbotClearSessionView(APIView):
-    def delete(self, request, session_id):
-        if not session_id:
+    try:
+        # Assuming the FastAPI server is running locally on port 8001
+        chatbot_url = 'http://localhost:8001/chat'
+        chatbot_res = requests.post(chatbot_url, json={'message': message}, timeout=30)
+        
+        if chatbot_res.status_code == 200:
+            return response.Response(chatbot_res.json(), status=status.HTTP_200_OK)
+        else:
             return response.Response(
-                {'error': 'session_id is required'}, 
-                status=status.HTTP_400_BAD_REQUEST
+                {'error': 'Error from Chatbot service', 'details': chatbot_res.text}, 
+                status=chatbot_res.status_code
             )
-            
-        try:
-            res = requests.delete(f"{CHATBOT_MICROSERVICE_URL}/chat/session/{session_id}")
-            res.raise_for_status()
-            return response.Response(res.json(), status=res.status_code)
-        except requests.exceptions.RequestException as e:
+    except requests.exceptions.RequestException as e:
+        return response.Response(
+            {'error': 'Failed to connect to Chatbot service', 'details': str(e)}, 
+            status=status.HTTP_503_SERVICE_UNAVAILABLE
+        )
+
+@api_view(['POST'])
+def chat_clear_proxy(request):
+    """
+    Forwards the clear chat history command to the Chatbot microservice.
+    """
+    try:
+        chatbot_url = 'http://localhost:8001/chat/clear'
+        chatbot_res = requests.post(chatbot_url, timeout=10)
+        
+        if chatbot_res.status_code == 200:
+            return response.Response(chatbot_res.json(), status=status.HTTP_200_OK)
+        else:
             return response.Response(
-                {'error': f"Failed to clear session on Chatbot microservice: {str(e)}"}, 
-                status=status.HTTP_503_SERVICE_UNAVAILABLE
+                {'error': 'Error from Chatbot service', 'details': chatbot_res.text}, 
+                status=chatbot_res.status_code
             )
+    except requests.exceptions.RequestException as e:
+        return response.Response(
+            {'error': 'Failed to connect to Chatbot service', 'details': str(e)}, 
+            status=status.HTTP_503_SERVICE_UNAVAILABLE
+        )
