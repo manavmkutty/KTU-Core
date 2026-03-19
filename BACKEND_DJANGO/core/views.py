@@ -1,7 +1,9 @@
 from rest_framework import viewsets, response, status
-from rest_framework.decorators import action
+from rest_framework.decorators import action, api_view
 from .models import Curriculum, Subject, Resource
 from .serializers import CurriculumSerializer, SubjectSerializer, ResourceSerializer
+import requests
+import json
 
 class CurriculumViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Curriculum.objects.all()
@@ -44,3 +46,52 @@ class ResourceViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(subject_name=subject_name)
             
         return queryset
+
+@api_view(['POST'])
+def chat_proxy(request):
+    """
+    Forwards the chat query to the Chatbot microservice running on port 8001.
+    """
+    message = request.data.get('message')
+    if not message:
+        return response.Response({'error': 'Message field is missing.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        # Assuming the FastAPI server is running locally on port 8001
+        chatbot_url = 'http://localhost:8001/chat'
+        chatbot_res = requests.post(chatbot_url, json={'message': message}, timeout=30)
+        
+        if chatbot_res.status_code == 200:
+            return response.Response(chatbot_res.json(), status=status.HTTP_200_OK)
+        else:
+            return response.Response(
+                {'error': 'Error from Chatbot service', 'details': chatbot_res.text}, 
+                status=chatbot_res.status_code
+            )
+    except requests.exceptions.RequestException as e:
+        return response.Response(
+            {'error': 'Failed to connect to Chatbot service', 'details': str(e)}, 
+            status=status.HTTP_503_SERVICE_UNAVAILABLE
+        )
+
+@api_view(['POST'])
+def chat_clear_proxy(request):
+    """
+    Forwards the clear chat history command to the Chatbot microservice.
+    """
+    try:
+        chatbot_url = 'http://localhost:8001/chat/clear'
+        chatbot_res = requests.post(chatbot_url, timeout=10)
+        
+        if chatbot_res.status_code == 200:
+            return response.Response(chatbot_res.json(), status=status.HTTP_200_OK)
+        else:
+            return response.Response(
+                {'error': 'Error from Chatbot service', 'details': chatbot_res.text}, 
+                status=chatbot_res.status_code
+            )
+    except requests.exceptions.RequestException as e:
+        return response.Response(
+            {'error': 'Failed to connect to Chatbot service', 'details': str(e)}, 
+            status=status.HTTP_503_SERVICE_UNAVAILABLE
+        )

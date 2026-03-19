@@ -1,0 +1,18 @@
+# Virtual environments
+.venv/
+BACKEND_DJANGO/.venv/
+Chatbot/.venv/
+
+# Pycache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Data folders
+data/
+Chatbot/data/
+BACKEND_DJANGO/db.sqlite3
+
+# Environment files
+*.env
+api.env

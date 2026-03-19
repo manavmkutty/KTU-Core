@@ -381,10 +381,137 @@ const app = {
             draw() { ctx.globalAlpha = this.life; ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); ctx.fill(); }
         }
 
-        window.addEventListener('mousemove', (e) => { for (let i = 0; i < 2; i++) sparkles.push(new Sparkle(e.clientX, e.clientY)); });
+        window.addEventListener('mousemove', (e) => { 
+            let now = Date.now();
+            if(!this.lastSparkleTime || now - this.lastSparkleTime > 40) { // Throttled to prevent lag
+                for (let i = 0; i < 2; i++) sparkles.push(new Sparkle(e.clientX, e.clientY)); 
+                this.lastSparkleTime = now;
+            }
+        });
         const anim = () => { ctx.clearRect(0, 0, width, height); sparkles = sparkles.filter(s => s.life > 0); sparkles.forEach(s => { s.update(); s.draw(); }); requestAnimationFrame(anim); };
         anim();
     }
 };
 
-document.addEventListener('DOMContentLoaded', () => app.init());
+/* --- Chatbot System --- */
+const chatbot = {
+    isOpen: false,
+    historyKey: 'ktu_chat_history',
+    
+    init() {
+        if (typeof marked !== 'undefined') {
+            marked.setOptions({ breaks: true });
+        }
+        this.renderHistory();
+        if (sessionStorage.getItem(this.historyKey) === null) {
+            // First time tab opened -> clear backend memory to match local fresh state
+            fetch(`${API_BASE_URL}/chat/clear/`, { method: 'POST' }).catch(e => console.log(e));
+            // Add initial welcome greeting
+            const greeting = "Hello! I am the KTU Assistant AI. How can I help you with your studies or curriculum today?";
+            this.addMessageToUI('bot', greeting);
+            this.saveToHistory('bot', greeting);
+        }
+    },
+    
+    toggle() {
+        this.isOpen = !this.isOpen;
+        const w = document.getElementById('chatbot-window');
+        if (this.isOpen) {
+            w.classList.remove('hidden-chatbot');
+            document.getElementById('chat-input').focus();
+        } else {
+            w.classList.add('hidden-chatbot');
+        }
+    },
+    
+    handleEnter(e) {
+        if (e.key === 'Enter') this.sendMessage();
+    },
+    
+    async sendMessage() {
+        const input = document.getElementById('chat-input');
+        const msg = input.value.trim();
+        if (!msg) return;
+        
+        input.value = '';
+        this.addMessageToUI('user', msg);
+        this.saveToHistory('user', msg);
+        
+        const loaderId = 'loader-' + Date.now();
+        const loaderHtml = '<div class="typing-dots"><span></span><span></span><span></span></div>';
+        this.addMessageToUI('bot', loaderHtml, loaderId);
+        
+        try {
+            const res = await fetch(`${API_BASE_URL}/chat/`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: msg })
+            });
+            const data = await res.json();
+            
+            document.getElementById(loaderId).remove();
+            
+            if (data.response) {
+                this.addMessageToUI('bot', data.response);
+                this.saveToHistory('bot', data.response);
+            } else {
+                this.addMessageToUI('bot', 'Error: ' + (data.error || 'Server error'));
+            }
+        } catch (err) {
+            document.getElementById(loaderId).remove();
+            this.addMessageToUI('bot', 'Failed to connect to the chatbot.');
+        }
+    },
+    
+    addMessageToUI(sender, text, id = null) {
+        const container = document.getElementById('chatbot-messages');
+        const div = document.createElement('div');
+        div.className = `chat-msg ${sender}`;
+        if (id) div.id = id;
+        
+        if (sender === 'bot' && typeof marked !== 'undefined' && !text.includes('typing-dots')) {
+            div.innerHTML = marked.parse(text);
+        } else if (text.includes('typing-dots')) {
+            div.innerHTML = text; // Raw HTML for loader
+        } else {
+            div.innerHTML = text.replace(/\n/g, '<br>');
+        }
+        
+        container.appendChild(div);
+        container.scrollTop = container.scrollHeight;
+    },
+    
+    saveToHistory(sender, text) {
+        let hist = JSON.parse(sessionStorage.getItem(this.historyKey) || '[]');
+        hist.push({ sender, text });
+        sessionStorage.setItem(this.historyKey, JSON.stringify(hist));
+    },
+    
+    renderHistory() {
+        let hist = JSON.parse(sessionStorage.getItem(this.historyKey) || '[]');
+        hist.forEach(m => this.addMessageToUI(m.sender, m.text));
+    }
+};
+
+document.addEventListener('DOMContentLoaded', () => {
+    app.init();
+    chatbot.init();
+
+    if (typeof interact !== 'undefined') {
+        interact('#chatbot-window')
+            .draggable({
+                allowFrom: '.chatbot-header',
+                modifiers: [ interact.modifiers.restrictRect({ restriction: 'parent', endOnly: true }) ],
+                listeners: {
+                    move(event) {
+                        var target = event.target;
+                        var x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx;
+                        var y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy;
+                        target.style.transform = `translate(${x}px, ${y}px)`;
+                        target.setAttribute('data-x', x);
+                        target.setAttribute('data-y', y);
+                    }
+                }
+            });
+    }
+});
