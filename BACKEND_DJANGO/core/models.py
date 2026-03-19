@@ -31,3 +31,25 @@ class Resource(models.Model):
 
     def __str__(self):
         return self.title
+
+
+class SystemSoftwareNotes(models.Model):
+    id = models.AutoField(primary_key=True)
+    title = models.TextField(blank=True, null=True)
+    unit = models.TextField(blank=True, null=True)
+    drive_link = models.TextField(blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'system_software_notes'
+
+
+class SystemSoftwarePyq(models.Model):
+    id = models.AutoField(primary_key=True)
+    exam_year = models.IntegerField(blank=True, null=True)
+    exam_month = models.TextField(blank=True, null=True)
+    drive_link = models.TextField(blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'system_software_pyq'

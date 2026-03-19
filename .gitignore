@@ -11,8 +11,8 @@ __pycache__/
 # Data folders
 data/
 Chatbot/data/
+db.sqlite3
 BACKEND_DJANGO/db.sqlite3
 
 # Environment files
 *.env
-api.env

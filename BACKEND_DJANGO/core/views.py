@@ -1,9 +1,12 @@
+import requests
 from rest_framework import viewsets, response, status
 from rest_framework.decorators import action, api_view
 from .models import Curriculum, Subject, Resource
 from .serializers import CurriculumSerializer, SubjectSerializer, ResourceSerializer
 import requests
 import json
+
+CHATBOT_MICROSERVICE_URL = "http://localhost:8001"
 
 class CurriculumViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Curriculum.objects.all()

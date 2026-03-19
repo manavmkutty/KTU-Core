@@ -138,4 +138,5 @@ def clear_chat_history():
     """Clears the chat history upon closing the chat."""
     global recent_messages, older_summary
     recent_messages.clear()
-    older_summary = ""
+    older_summary = ""
+
