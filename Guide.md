@@ -97,9 +97,17 @@ The `FRONTEND` directory contains plain HTML, CSS, and JavaScript.
 2. **Serve the Frontend**:
    Because it uses vanilla web technologies, you can run it using any simple HTTP server to avoid CORS issues. 
    
+   **Recommended Method (Using Node.js/npx)**
+   If you have Node.js installed, using `npx serve` is a great choice:
    Open a new terminal inside the `FRONTEND` folder and run:
+   ```bash
+   npx serve . -p 3000
+   ```
+   Now, navigate to `http://localhost:3000/index2.html` in your web browser.
+
+   **Alternative Method (Using Python)**
+   If you don't have Node.js installed, you can use Python:
    ```bash
    python -m http.server 3000
    ```
-   Now, navigate to `http://localhost:3000/index2.html` in your web browser. 
    *(Alternatively, use the VSCode "Live Server" extension to open the file).*
