@@ -222,15 +222,325 @@ input, select {
 
 .option-btn:hover { background:#030014; border-color: var(--primary-accent); }
 
-/* SGPA Table */
+/* ─── GPA Calculator — Setup Screen ─────────────────────────────── */
+.gpa-setup-wrapper {
+    max-width: 560px;
+    margin: 2rem auto;
+    background: linear-gradient(145deg, #13092e, #1a0f3a);
+    border: 1px solid rgba(168, 85, 247, 0.25);
+    border-radius: 24px;
+    padding: 3rem 2.5rem;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5), 0 0 0 1px rgba(168,85,247,0.08);
+    animation: fadeIn 0.4s ease;
+}
+
+.gpa-setup-header {
+    text-align: center;
+    margin-bottom: 2.5rem;
+}
+
+.gpa-icon-badge {
+    font-size: 3.5rem;
+    margin-bottom: 1rem;
+    display: inline-block;
+    filter: drop-shadow(0 0 12px rgba(168,85,247,0.6));
+}
+
+.gpa-title {
+    font-size: 2.2rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.gpa-subtitle {
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+}
+
+.gpa-setup-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.2rem;
+}
+
+.gpa-field-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.gpa-label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--primary-accent);
+}
+
+.gpa-select {
+    margin: 0 !important;
+    padding: 0.9rem 1rem !important;
+    background: rgba(255,255,255,0.04) !important;
+    border: 1px solid rgba(168,85,247,0.3) !important;
+    border-radius: 12px !important;
+    font-size: 1rem;
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.gpa-select:focus {
+    outline: none;
+    border-color: var(--primary-accent) !important;
+    box-shadow: 0 0 0 3px rgba(168,85,247,0.15);
+}
+
+.gpa-start-btn {
+    width: 100%;
+    padding: 1.1rem !important;
+    font-size: 1.05rem;
+    letter-spacing: 0.03em;
+    border-radius: 12px !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.7rem;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.gpa-start-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(168,85,247,0.35);
+}
+
+.btn-arrow {
+    font-size: 1.2rem;
+    transition: transform 0.2s;
+}
+
+.gpa-start-btn:hover .btn-arrow {
+    transform: translateX(4px);
+}
+
+/* ─── GPA Calculator — Dashboard ────────────────────────────────── */
+.gpa-dashboard-wrapper {
+    max-width: 860px;
+    margin: 0 auto;
+    animation: fadeIn 0.4s ease;
+}
+
+.gpa-summary-card {
+    background: linear-gradient(135deg, rgba(168,85,247,0.15), rgba(59,130,246,0.12));
+    border: 1px solid rgba(168,85,247,0.3);
+    border-radius: 20px;
+    padding: 2rem 2.5rem;
+    margin-bottom: 2.5rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1.5rem;
+    text-align: center;
+}
+
+.gpa-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.gpa-stat-value {
+    font-size: 2.4rem;
+    font-weight: 800;
+    background: linear-gradient(to right, var(--primary-accent), var(--secondary-accent));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    line-height: 1;
+}
+
+.gpa-stat-label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.gpa-sem-header-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+    padding: 0 0.25rem;
+}
+
+.gpa-sem-title {
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.gpa-sem-hint {
+    font-size: 0.82rem;
+    color: var(--text-secondary);
+}
+
+/* ─── Accordion Semesters ────────────────────────────────────────── */
+.accordion-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.sem-card {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 14px;
+    overflow: hidden;
+    transition: border-color 0.25s;
+}
+
+.sem-card:hover {
+    border-color: rgba(168,85,247,0.35);
+}
+
+.sem-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.1rem 1.5rem;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.sem-header:hover {
+    background: rgba(168,85,247,0.06);
+}
+
+.sem-header h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+.sem-header h3::before {
+    content: '';
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--primary-accent);
+    opacity: 0.6;
+}
+
+.sem-sgpa-badge {
+    font-size: 0.85rem;
+    font-weight: 600;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    background: rgba(168,85,247,0.12);
+    border: 1px solid rgba(168,85,247,0.25);
+    color: var(--text-secondary);
+    transition: all 0.3s;
+}
+
+.sem-sgpa-badge.calculated {
+    background: rgba(168,85,247,0.2);
+    color: var(--primary-accent);
+    border-color: var(--primary-accent);
+}
+
+.sem-body {
+    padding: 0 1.5rem 1.5rem;
+    border-top: 1px solid rgba(255,255,255,0.05);
+}
+
+.sem-body.hidden { display: none; }
+
+/* ─── SGPA Table ─────────────────────────────────────────────────── */
 .sgpa-table {
     width: 100%;
     border-collapse: collapse;
-    margin: 1.5rem 0;
+    margin: 1.2rem 0 1rem;
+    font-size: 0.93rem;
 }
 
-.sgpa-table th { color: var(--text-secondary); text-align: left; padding: 10px; }
-.sgpa-table td { padding: 12px 10px; border-bottom: 1px solid #334155; }
+.sgpa-table thead tr {
+    background: rgba(168,85,247,0.08);
+}
+
+.sgpa-table th {
+    color: var(--text-secondary);
+    text-align: left;
+    padding: 0.75rem 1rem;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    font-weight: 600;
+}
+
+.sgpa-table td {
+    padding: 0.85rem 1rem;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    vertical-align: middle;
+}
+
+.sgpa-table tr:last-child td {
+    border-bottom: none;
+}
+
+.sgpa-table tr:hover td {
+    background: rgba(255,255,255,0.02);
+}
+
+.sgpa-table .credit-badge {
+    display: inline-block;
+    background: rgba(59,130,246,0.15);
+    color: var(--secondary-accent);
+    padding: 0.2rem 0.6rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.grade-select {
+    padding: 0.5rem 0.75rem !important;
+    margin: 0 !important;
+    background: rgba(255,255,255,0.06) !important;
+    border: 1px solid rgba(255,255,255,0.12) !important;
+    border-radius: 8px !important;
+    font-size: 0.9rem;
+    min-width: 110px;
+    transition: border-color 0.2s !important;
+}
+
+.grade-select:focus {
+    border-color: var(--primary-accent) !important;
+    outline: none;
+}
+
+.calc-sem-btn {
+    width: 100%;
+    margin-top: 0.75rem;
+    padding: 0.85rem;
+    background: linear-gradient(135deg, rgba(168,85,247,0.3), rgba(59,130,246,0.3));
+    border: 1px solid rgba(168,85,247,0.4);
+    color: white;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 0.03em;
+}
+
+.calc-sem-btn:hover {
+    background: linear-gradient(135deg, var(--primary-accent), var(--secondary-accent));
+    border-color: transparent;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 16px rgba(168,85,247,0.3);
+}
+
 
 /* Custom Cursor */
 .cursor-dot, .cursor-outline {

@@ -103,21 +103,42 @@
 
         <section id="sgpa-section" class="hidden-section">
             <button class="back-btn" onclick="app.goBack()">← Back</button>
-            <div id="sgpa-setup" class="calc-card">
-                <h2>GPA Calculator</h2>
-                <select id="sgpa-scheme" class="styled-select">
-                    <option value="2019">2019 Scheme</option>
-                    <option value="2024">2024 Scheme</option>
-                </select>
-                <select id="sgpa-dept" class="styled-select">
-                    <option value="CS">Computer Science</option>
-                    <option value="EC">Electronics</option>
-                </select>
-                <button class="primary-btn" onclick="app.initSGPADashboard()">Start Calculating</button>
+
+            <div id="sgpa-setup" class="gpa-setup-wrapper">
+                <div class="gpa-setup-header">
+                    <div class="gpa-icon-badge">🎓</div>
+                    <h2 class="gpa-title">GPA <span class="text-gradient">Calculator</span></h2>
+                    <p class="gpa-subtitle">Select your scheme and department to get started</p>
+                </div>
+                <div class="gpa-setup-form">
+                    <div class="gpa-field-group">
+                        <label class="gpa-label">Academic Scheme</label>
+                        <select id="sgpa-scheme" class="styled-select gpa-select">
+                            <option value="2019">2019 Scheme</option>
+                            <option value="2024">2024 Scheme</option>
+                        </select>
+                    </div>
+                    <div class="gpa-field-group">
+                        <label class="gpa-label">Department</label>
+                        <select id="sgpa-dept" class="styled-select gpa-select">
+                            <option value="CS">Computer Science &amp; Engineering</option>
+                            <option value="EC">Electronics &amp; Communication</option>
+                            <option value="AIML">Artificial Intelligence &amp; ML</option>
+                            <option value="ME">Mechanical Engineering</option>
+                        </select>
+                    </div>
+                    <button class="primary-btn gpa-start-btn" onclick="app.initSGPADashboard()">
+                        <span>Start Calculating</span> <span class="btn-arrow">→</span>
+                    </button>
+                </div>
             </div>
 
-            <div id="sgpa-dashboard" class="hidden-step">
-                <div id="cgpa-summary-card" class="summary-card"></div>
+            <div id="sgpa-dashboard" class="hidden-step gpa-dashboard-wrapper">
+                <div id="cgpa-summary-card" class="gpa-summary-card"></div>
+                <div class="gpa-sem-header-row">
+                    <h3 class="gpa-sem-title">Semester Breakdown</h3>
+                    <p class="gpa-sem-hint">Click a semester to expand and enter grades</p>
+                </div>
                 <div id="semester-list" class="accordion-container"></div>
             </div>
         </section>

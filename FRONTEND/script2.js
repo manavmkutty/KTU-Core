@@ -36,15 +36,16 @@ const app = {
     },
 
     async loadInitialData() {
+        const expectedSchemes = ['2019', '2024'];
         try {
             const res = await fetch(`${API_BASE_URL}/curriculum/schemes/`);
-            ktuData.schemes = await res.json();
-            if (ktuData.schemes.length === 0) {
-                ktuData.schemes = ['2019', '2024'];
-            }
+            const dbSchemes = await res.json();
+            // Merge DB schemes with expected schemes so UI always shows all options
+            // even if the DB is only partially seeded
+            ktuData.schemes = [...new Set([...expectedSchemes, ...dbSchemes])].sort();
         } catch (err) {
             console.error("Failed to load schemes:", err);
-            ktuData.schemes = ['2019', '2024'];
+            ktuData.schemes = expectedSchemes;
         }
         this.renderSchemeOptions();
     },
