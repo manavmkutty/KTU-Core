@@ -25,7 +25,7 @@ const app = {
         dept: null,
         sgpa: {}
     },
-    state: { scheme: null, dept: null, semester: null, subject: null },
+    state: { scheme: null, dept: null, semester: null, subject: null, searchFailedCount: 0 },
 
     async init() {
         this.addCustomCursor();
@@ -65,10 +65,77 @@ const app = {
         } else if (feature === 'attendance') {
             this.showSection('attendance-section');
         } else if (feature === 'sgpa' || feature === 'cgpa') {
+            this.resetSGPAFlow();
             this.showSection('sgpa-section');
+        } else if (feature === 'pyq') {
+            window.location.href = 'pyq.html';
         } else {
             this.showModal('auth-modal');
         }
+    },
+
+    handleSearch(e) {
+        if (e) e.preventDefault();
+        const input = document.getElementById('navbar-search');
+        const query = input.value.toLowerCase().trim();
+        if (!query) return;
+
+        const mappings = {
+            'note': () => this.handleCardClick('notes'),
+            'chat': () => chatbot.toggle(),
+            'bot': () => chatbot.toggle(),
+            'assist': () => chatbot.toggle(),
+            'ai': () => chatbot.toggle(),
+            'help': () => chatbot.toggle(),
+            'pyq': () => window.location.href = 'pyq.html',
+            'ques': () => window.location.href = 'pyq.html',
+            'paper': () => window.location.href = 'pyq.html',
+            'attend': () => this.handleCardClick('attendance'),
+            'bunk': () => this.handleCardClick('attendance'),
+            'gpa': () => this.handleCardClick('sgpa'),
+            'sgpa': () => this.handleCardClick('sgpa'),
+            'cgpa': () => this.handleCardClick('sgpa'),
+            'calc': () => this.handleCardClick('sgpa'),
+            'grade': () => this.handleCardClick('sgpa'),
+            'home': () => this.goHome()
+        };
+
+        let found = false;
+        for (const [key, action] of Object.entries(mappings)) {
+            if (query.includes(key)) {
+                action();
+                found = true;
+                this.state.searchFailedCount = 0;
+                this.hideSearchToast();
+                input.value = '';
+                break;
+            }
+        }
+
+        if (!found) {
+            this.state.searchFailedCount++;
+            this.showSearchWarning();
+        }
+    },
+
+    showSearchWarning() {
+        const toast = document.getElementById('search-toast');
+        if (!toast) return;
+
+        let msg = "";
+        if (this.state.searchFailedCount === 1) msg = "Some where in database, but can't find";
+        else if (this.state.searchFailedCount === 2) msg = "Too Noughty, Don't Repeat it";
+        else msg = "That’s why you have failed your exams.";
+
+        toast.innerText = msg;
+        toast.classList.remove('hidden-toast');
+        
+        clearTimeout(this.searchToastTimeout);
+        this.searchToastTimeout = setTimeout(() => this.hideSearchToast(), 4000);
+    },
+
+    hideSearchToast() {
+        document.getElementById('search-toast')?.classList.add('hidden-toast');
     },
 
     showSection(sectionId) {
@@ -100,6 +167,13 @@ const app = {
             } else if (current.id === 'step-materials') {
                 this.setFlowStep('step-subject');
             }
+        } else if (document.getElementById('sgpa-section').classList.contains('active-section')) {
+            const dashboard = document.getElementById('sgpa-dashboard');
+            if (dashboard && dashboard.classList.contains('active-step')) {
+                this.resetSGPAFlow();
+            } else {
+                this.goHome();
+            }
         } else {
             this.goHome();
         }
@@ -123,8 +197,20 @@ const app = {
         this.updateCGPASummary();
 
         document.getElementById('sgpa-setup').classList.add('hidden-step');
+        document.getElementById('sgpa-setup').classList.remove('active-step');
         document.getElementById('sgpa-dashboard').classList.remove('hidden-step');
         document.getElementById('sgpa-dashboard').classList.add('active-step');
+    },
+
+    resetSGPAFlow() {
+        const setup = document.getElementById('sgpa-setup');
+        const dashboard = document.getElementById('sgpa-dashboard');
+        if (setup && dashboard) {
+            setup.classList.remove('hidden-step');
+            setup.classList.add('active-step');
+            dashboard.classList.add('hidden-step');
+            dashboard.classList.remove('active-step');
+        }
     },
 
     renderSemesterList() {
@@ -138,7 +224,7 @@ const app = {
             card.innerHTML = `
                 <div class="sem-header" onclick="app.toggleSemBody('${sem}')">
                     <h3>${sem}</h3>
-                    <span id="sgpa-display-${sem}" style="color:var(--text-secondary)">Not Calculated</span>
+                    <div id="sgpa-display-${sem}" class="sgpa-display">Not Calculated</div>
                 </div>
                 <div id="sem-body-${sem}" class="sem-body hidden"></div>
             `;
@@ -205,7 +291,9 @@ const app = {
         const sgpa = totalCredit > 0 ? (totalPoints / totalCredit) : 0;
         this.user.sgpa[sem] = { credits: totalCredit, points: totalPoints, sgpa: sgpa };
 
-        document.getElementById(`sgpa-display-${sem}`).innerHTML = `<span style="color:var(--primary-accent); font-weight:bold">${sgpa.toFixed(2)}</span>`;
+        const display = document.getElementById(`sgpa-display-${sem}`);
+        display.innerHTML = `SGPA: ${sgpa.toFixed(2)}`;
+        display.classList.add('calculated');
         this.updateCGPASummary();
         body.classList.add('hidden');
     },
@@ -224,9 +312,18 @@ const app = {
         container.innerHTML = `
             <h3>Cumulative Report</h3>
             <div class="summary-row">
-                <div>Total Credits: ${totalCredits}</div>
-                <div>CGPA: ${cgpa.toFixed(2)}</div>
-                <div>Percentage: ${(cgpa * 10).toFixed(2)}%</div>
+                <div class="summary-item">
+                    <span class="summary-value">${totalCredits}</span>
+                    <span class="summary-label">Total Credits</span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-value" style="color:var(--primary-accent)">${cgpa.toFixed(2)}</span>
+                    <span class="summary-label">CGPA</span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-value">${(cgpa * 10).toFixed(2)}%</span>
+                    <span class="summary-label">Percentage</span>
+                </div>
             </div>
         `;
     },

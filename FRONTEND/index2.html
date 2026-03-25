@@ -15,15 +15,19 @@
 
     <nav class="glass-nav">
         <div class="logo" onclick="app.goHome()">KTU<span class="highlight">Core</span></div>
-        <form action="" method="post" class="search-form">
-            <input type="text" name="search_box" placeholder="What do you want to search?" required maxlength="100">
-            <button type="submit" class="fas fa-search" name="search_box"></button>
-        </form>
+        <div class="search-wrapper">
+            <form action="" method="post" class="search-form" onsubmit="app.handleSearch(event)">
+                <input type="text" id="navbar-search" name="search_box" placeholder="What do you want to search?" required maxlength="100">
+                <button type="submit" class="fas fa-search"></button>
+            </form>
+            <div id="search-toast" class="search-toast hidden-toast"></div>
+        </div>
         <div class="nav-links">
             <a href="#" class="nav-item active" data-target="home">HOME</a>
             <a href="#" class="nav-item" data-target="notes">NOTES</a>
             <a href="#" class="nav-item" data-target="attendance">ATTENDANCE</a>
             <a href="#" class="nav-item" data-target="sgpa">SGPA/CGPA</a>
+            <a href="#" class="nav-item" data-target="pyq">PYQ</a>
             <a href="#" class="nav-item logout-btn">LOGOUT</a>
         </div>
     </nav>

@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KTUCore | PYQ Search</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css">
+    <link rel="stylesheet" href="style2.css">
+    <style>
+        .pyq-container {
+            max-width: 800px;
+            margin: 100px auto;
+            padding: 40px;
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .pyq-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .pyq-title {
+            font-size: 2.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #fff 0%, #a5b4fc 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+
+        .search-group {
+            margin-bottom: 25px;
+        }
+
+        .search-group label {
+            display: block;
+            margin-bottom: 10px;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .pyq-select, .pyq-input {
+            width: 100%;
+            padding: 15px 20px;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            color: #fff;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            appearance: none;
+        }
+
+        .pyq-select:focus, .pyq-input:focus {
+            outline: none;
+            border-color: var(--primary-accent);
+            background: rgba(0, 0, 0, 0.4);
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+        }
+
+        .select-wrapper {
+            position: relative;
+        }
+
+        .select-wrapper::after {
+            content: '\f078';
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-secondary);
+            pointer-events: none;
+        }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            text-align: center;
+            margin: 30px 0;
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .divider::before, .divider::after {
+            content: '';
+            flex: 1;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .divider:not(:empty)::before { margin-right: 15px; }
+        .divider:not(:empty)::after { margin-left: 15px; }
+
+        .search-btn {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, var(--primary-accent) 0%, #4f46e5 100%);
+            border: none;
+            border-radius: 12px;
+            color: #fff;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .search-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px -5px rgba(99, 102, 241, 0.4);
+        }
+
+        .search-btn i { font-size: 0.9rem; }
+
+        .results-section {
+            margin-top: 40px;
+            display: grid;
+            gap: 15px;
+        }
+
+        .paper-card {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            border-radius: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.3s ease;
+        }
+
+        .paper-card:hover {
+            background: rgba(255, 255, 255, 0.08);
+            transform: translateX(5px);
+        }
+
+        .paper-info h4 {
+            margin: 0;
+            font-size: 1.1rem;
+            color: #fff;
+        }
+
+        .paper-info p {
+            margin: 5px 0 0;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .view-pdf-btn {
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            color: #fff;
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .view-pdf-btn:hover {
+            background: var(--primary-accent);
+            border-color: var(--primary-accent);
+        }
+
+        .back-home {
+            position: absolute;
+            top: 40px;
+            left: 40px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        .back-home:hover {
+            color: #fff;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="cursor-dot"></div>
+    <div class="cursor-outline"></div>
+
+    <a href="index2.html" class="back-home">
+        <button class="back-btn" onclick="app.goBack()">← Back</button>
+    </a>
+
+    <div class="pyq-container">
+        <div class="pyq-header">
+            <h1 class="pyq-title">PYQ Search</h1>
+            <p style="color: var(--text-secondary)">Find previous year question papers easily</p>
+        </div>
+
+        <div class="search-group">
+            <label>Scheme</label>
+            <div class="select-wrapper">
+                <select id="scheme-select" class="pyq-select">
+                    <option value="">Select Scheme</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="search-group">
+            <label>Department / Branch</label>
+            <div class="select-wrapper">
+                <select id="dept-select" class="pyq-select">
+                    <option value="">Select Branch</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="search-group">
+            <label>Semester</label>
+            <div class="select-wrapper">
+                <select id="sem-select" class="pyq-select">
+                    <option value="">Select Semester</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="search-group">
+            <label>Subject</label>
+            <div class="select-wrapper">
+                <select id="sub-select" class="pyq-select">
+                    <option value="">Select Subject</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="divider">OR</div>
+
+        <div class="search-group">
+            <label>Manual Search</label>
+            <input type="text" id="manual-search" class="pyq-input" placeholder="Type Subject (e.g. 'graphics', 'CST201')...">
+        </div>
+
+        <button class="search-btn" onclick="pyq.search()">
+            <i class="fas fa-search"></i> Search Papers
+        </button>
+
+        <div id="results-container" class="results-section">
+            <!-- Results will be injected here -->
+        </div>
+    </div>
+
+    <script src="pyq.js"></script>
+</body>
+
+</html>
