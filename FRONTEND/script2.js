@@ -139,7 +139,7 @@ const app = {
             card.innerHTML = `
                 <div class="sem-header" onclick="app.toggleSemBody('${sem}')">
                     <h3>${sem}</h3>
-                    <span id="sgpa-display-${sem}" style="color:var(--text-secondary)">Not Calculated</span>
+                    <span id="sgpa-display-${sem}" class="sem-sgpa-badge">Pending</span>
                 </div>
                 <div id="sem-body-${sem}" class="sem-body hidden"></div>
             `;
@@ -165,15 +165,23 @@ const app = {
 
             if (subjects.error) throw new Error(subjects.error);
 
-            let html = `<table class="sgpa-table"><thead><tr><th>Subject</th><th>Credit</th><th>Grade</th></tr></thead><tbody>`;
+            let html = `<table class="sgpa-table">
+                            <thead>
+                                <tr>
+                                    <th>Subject</th>
+                                    <th>Credits</th>
+                                    <th>Grade</th>
+                                </tr>
+                            </thead>
+                            <tbody>`;
 
             subjects.forEach((sub) => {
                 html += `
                     <tr>
-                        <td>${sub.name}</td>
-                        <td>${sub.credit}</td>
+                        <td><strong>${sub.name}</strong></td>
+                        <td><span class="credit-badge">${sub.credit}</span></td>
                         <td>
-                            <select class="grade-select styled-select" data-credit="${sub.credit}">
+                            <select class="grade-select" data-credit="${sub.credit}">
                                 <option value="">Select</option>
                                 ${Object.keys(ktuData.grades).map(g => `<option value="${ktuData.grades[g]}">${g}</option>`).join('')}
                             </select>
@@ -181,7 +189,10 @@ const app = {
                     </tr>`;
             });
 
-            html += `</tbody></table><button class="primary-btn" onclick="app.calculateSemesterSGPA('${sem}')">Calculate ${sem} SGPA</button>`;
+            html += `</tbody></table>
+                     <button class="calc-sem-btn" onclick="app.calculateSemesterSGPA('${sem}')">
+                        Calculate ${sem} Result
+                     </button>`;
             container.innerHTML = html;
         } catch (err) {
             container.innerHTML = `<div class="error">Failed to load subjects: ${err.message}</div>`;
@@ -206,7 +217,10 @@ const app = {
         const sgpa = totalCredit > 0 ? (totalPoints / totalCredit) : 0;
         this.user.sgpa[sem] = { credits: totalCredit, points: totalPoints, sgpa: sgpa };
 
-        document.getElementById(`sgpa-display-${sem}`).innerHTML = `<span style="color:var(--primary-accent); font-weight:bold">${sgpa.toFixed(2)}</span>`;
+        const displayEl = document.getElementById(`sgpa-display-${sem}`);
+        displayEl.innerHTML = `SGPA: ${sgpa.toFixed(2)}`;
+        displayEl.classList.add('calculated');
+        
         this.updateCGPASummary();
         body.classList.add('hidden');
     },
@@ -222,12 +236,20 @@ const app = {
         });
 
         const cgpa = totalCredits > 0 ? (totalPoints / totalCredits) : 0;
+        const percentage = totalCredits > 0 ? (cgpa * 10).toFixed(1) : 0;
+        
         container.innerHTML = `
-            <h3>Cumulative Report</h3>
-            <div class="summary-row">
-                <div>Total Credits: ${totalCredits}</div>
-                <div>CGPA: ${cgpa.toFixed(2)}</div>
-                <div>Percentage: ${(cgpa * 10).toFixed(2)}%</div>
+            <div class="gpa-stat">
+                <span class="gpa-stat-value">${totalCredits}</span>
+                <span class="gpa-stat-label">Total Credits</span>
+            </div>
+            <div class="gpa-stat">
+                <span class="gpa-stat-value">${cgpa.toFixed(2)}</span>
+                <span class="gpa-stat-label">Cumulative GPA</span>
+            </div>
+            <div class="gpa-stat">
+                <span class="gpa-stat-value">${percentage}%</span>
+                <span class="gpa-stat-label">Overall Percentage</span>
             </div>
         `;
     },
